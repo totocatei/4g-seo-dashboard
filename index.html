@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>4G SEO 分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; }
+        .chart-box { height: 400px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>📊 4G 吃到飽 Entity 分析</h1>
+    <div class="chart-box"><canvas id="myChart"></canvas></div>
+    <script>
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/1phaKp15ybBWa9X_LKa8zehXgDDZwovBCPHou-ruOGMw/gviz/tq?tqx=out:csv';
+        async function load() {
+            const r = await fetch(sheetUrl);
+            const t = await r.text();
+            const lines = t.split('\n').slice(1);
+            const counts = {};
+            lines.forEach(l => {
+                const cols = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if(cols[4]) {
+                    cols[4].replace(/"/g,'').split(', ').forEach(e => {
+                        const name = e.split(':')[0];
+                        if(name && name.trim()) counts[name] = (counts[name] || 0) + 1;
+                    });
+                }
+            });
+            const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            new Chart(document.getElementById('myChart'), {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(x=>x[0]),
+                    datasets: [{ label: '出現頻率', data: sorted.map(x=>x[1]), backgroundColor: '#3498db' }]
+                }
+            });
+        }
+        load();
+    </script>
+</body>
+</html>
